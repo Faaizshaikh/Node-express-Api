@@ -26,7 +26,7 @@ jobs:
     # Define the matrix strategy for parallel testing
     strategy:
       matrix:
-        node-version: [16.x, 18.x, 20.x] # Runs a job for each version
+        node-version: [18 , 20] # Runs a job for each version
 
     steps:
       # Step 1: Check out your repository code
