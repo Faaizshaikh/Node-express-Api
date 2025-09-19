@@ -9,6 +9,7 @@ app.use(express.json());
 
 // Routes
 app.use("/api/tasks", tasksRoutes);
+module.exports = app;
 
 app.get("/", (req, res) => {
   res.send("✅ Node.js Express API is running...");
