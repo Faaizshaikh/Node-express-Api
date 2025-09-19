@@ -1,0 +1,63 @@
+name: Node CI
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      skip_build:
+        description: 'Skip the build step?'
+        required: true
+        default: 'false'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16, 18, 20, current]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm ci
+      - run: npm test
+      - name: Concatenate test results
+        run: |
+          mkdir -p test-summary
+          cat test-results/**/*.txt > test-summary/summary.txt
+      - name: Upload current test count
+        run: |
+          TEST_COUNT=$(find test-results -name '*.txt' | wc -l)
+          echo $TEST_COUNT > current_test_count.txt
+      - uses: actions/upload-artifact@v3
+        with:
+          name: current-test-count
+          path: current_test_count.txt
+      - name: Download previous test count
+        id: prev
+        uses: actions/download-artifact@v3
+        with:
+          name: current-test-count
+          path: previous_test_count.txt
+        continue-on-error: true
+      - name: Compare test counts
+        run: |
+          PREV_COUNT=$(cat previous_test_count.txt || echo 0)
+          CURR_COUNT=$(cat current_test_count.txt)
+          if [ $CURR_COUNT -lt $PREV_COUNT ]; then
+            echo "❌ Number of tests decreased!"
+            exit 1
+          fi
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.skip_build != 'true' }}
+    steps:
+      - uses: actions/checkout@v3
+      - run: npm ci
+      - run: npm run build
