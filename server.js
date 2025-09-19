@@ -1,20 +1,20 @@
-const express = require("express");
-const tasksRoutes = require("./routes/tasks");
+const express = require('express');
+const bodyParser = require('body-parser');
+const taskRoutes = require('./routes/tasks');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
-
-// Middleware
-app.use(express.json());
+app.use(bodyParser.json());
 
 // Routes
-app.use("/api/tasks", tasksRoutes);
+app.use('/api/tasks', taskRoutes);
+
+// Export app for testing
 module.exports = app;
 
-app.get("/", (req, res) => {
-  res.send("✅ Node.js Express API is running...");
-});
-
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+// Start server only if not in test mode
+if (require.main === module) {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}
