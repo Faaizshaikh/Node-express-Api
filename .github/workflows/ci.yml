@@ -14,18 +14,21 @@ jobs:
         node-version: [16, 18, 20]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
+
       - run: npm install
+
       - name: Run tests with Jest
         run: |
           mkdir -p test-results
           npm test | tee test-results/jest.log
+
       - name: Upload test logs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4   # ✅ FIXED (v4)
         with:
           name: test-results-${{ matrix.node-version }}
           path: test-results/
