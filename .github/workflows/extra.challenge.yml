@@ -25,3 +25,70 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Concatenate test results
+        run: |
+          mkdir -p test-summary
+          shopt -s nullglob
+          FILES=(test-results/**/*.txt)
+          if [ ${#FILES[@]} -gt 0 ]; then
+            cat "${FILES[@]}" > test-summary/summary.txt
+          else
+            echo "No test result files found"
+            touch test-summary/summary.txt
+          fi
+
+      - name: Upload current test count
+        run: |
+          TEST_COUNT=$(find test-results -name '*.txt' | wc -l)
+          echo $TEST_COUNT > current_test_count.txt
+
+      - name: Save test count artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: current-test-count
+          path: current_test_count.txt
+
+      - name: Download previous test count
+        uses: actions/download-artifact@v3
+        with:
+          name: current-test-count
+          path: previous_test_count_dir
+        continue-on-error: true
+
+      - name: Compare test counts
+        run: |
+          PREV_COUNT=$(cat previous_test_count_dir/current_test_count.txt || echo 0)
+          CURR_COUNT=$(cat current_test_count.txt)
+          echo "Previous test count: $PREV_COUNT"
+          echo "Current test count: $CURR_COUNT"
+          if [ "$CURR_COUNT" -lt "$PREV_COUNT" ]; then
+            echo "❌ Number of tests decreased!"
+            exit 1
+          fi
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.skip_build != 'true' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18  # Choose default Node version for build
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
