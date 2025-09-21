@@ -20,10 +20,10 @@ jobs:
         node-version: [16, 18, 20]  # Add Node versions to test
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
 
@@ -51,13 +51,13 @@ jobs:
           echo $TEST_COUNT > current_test_count.txt
 
       - name: Save test count artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: current-test-count
           path: current_test_count.txt
 
       - name: Download previous test count
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: current-test-count
           path: previous_test_count_dir
@@ -80,10 +80,10 @@ jobs:
     if: ${{ github.event.inputs.skip_build != 'true' }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18  # Choose default Node version for build
 
